@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(open \"/Users/damianomiazzi/Desktop/PilorReady.app WebSite/index.html\")",
+      "Read(//Users/damianomiazzi/Desktop/**)",
+      "Read(//Users/damianomiazzi/Downloads/**)",
+      "Bash(python3 -m http.server 8000)",
+      "Bash(ls \"/Users/damianomiazzi/Desktop/PilorReady.app WebSite/\"*.html)",
+      "Bash(cp index-v1.html index.html)",
+      "Bash(rm index-v1.html index-v2.html)",
+      "Bash(lsof -ti:8000)",
+      "Bash(sips -g pixelWidth -g pixelHeight \"/Users/damianomiazzi/Desktop/PilorReady.app WebSite/assets/screenshot-home.png\")",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(docker version:*)",
+      "Bash(docker stop:*)",
+      "Bash(docker update:*)",
+      "Bash(npm install:*)",
+      "Bash(pnpm --version)",
+      "Bash(pnpm init:*)"
+    ]
+  }
+}

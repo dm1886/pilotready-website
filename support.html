@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Support — PilotReady</title>
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:       #0B1D3A;
+      --navy-mid:   #132648;
+      --teal:       #00C8D7;
+      --gold:       #D4A837;
+      --white:      #FFFFFF;
+      --off-white:  #E8F0FE;
+      --gray:       #8A9BBF;
+      --border:     rgba(255,255,255,0.08);
+      --font:       'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font);
+      background: var(--navy);
+      color: var(--white);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    a { color: var(--teal); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ─── Nav ─────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 16px 0;
+      background: rgba(11,29,58,0.92);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--white);
+    }
+    .nav-logo img {
+      width: 36px; height: 36px; border-radius: 8px;
+    }
+    .nav-logo-text {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .nav-logo-text span { color: var(--teal); }
+    .nav-back {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--gray);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-back:hover { color: var(--teal); text-decoration: none; }
+
+    /* ─── Content ─────────────────────────────── */
+    .support-container {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 120px 24px 80px;
+    }
+
+    .support-header {
+      margin-bottom: 48px;
+    }
+    .support-header h1 {
+      font-size: clamp(2rem, 4vw, 2.8rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 8px;
+    }
+    .support-header .subtitle {
+      color: var(--gray);
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+    }
+    .support-badge {
+      display: inline-block;
+      background: rgba(0,200,215,0.1);
+      border: 1px solid rgba(0,200,215,0.25);
+      border-radius: 8px;
+      padding: 5px 14px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--teal);
+    }
+
+    h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--white);
+      margin: 40px 0 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    p {
+      margin-bottom: 14px;
+      color: var(--off-white);
+      opacity: 0.85;
+      font-size: 0.95rem;
+    }
+
+    ul {
+      padding-left: 20px;
+      margin-bottom: 14px;
+      list-style: none;
+    }
+    li {
+      margin-bottom: 18px;
+      color: var(--off-white);
+      opacity: 0.85;
+      font-size: 0.95rem;
+    }
+    li strong {
+      color: var(--white);
+      opacity: 1;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .contact-box {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px 28px;
+      margin-top: 40px;
+    }
+    .contact-box p { margin: 0; }
+
+    .contact-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 20px;
+      padding: 12px 28px;
+      background: var(--teal);
+      color: var(--navy);
+      font-weight: 700;
+      font-size: 0.95rem;
+      border-radius: 50px;
+      text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 20px rgba(0,200,215,0.3);
+    }
+    .contact-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(0,200,215,0.4);
+      text-decoration: none;
+    }
+
+    /* ─── Footer ─────────────────────────────── */
+    footer {
+      background: #070F1E;
+      padding: 40px 0;
+      border-top: 1px solid var(--border);
+    }
+    .footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+    .footer-logo img { width: 28px; height: 28px; border-radius: 6px; }
+    .footer-logo span { color: var(--teal); }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a {
+      font-size: 0.85rem;
+      color: var(--gray);
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--teal); text-decoration: none; }
+    .footer-copy {
+      font-size: 0.8rem;
+      color: var(--gray);
+      opacity: 0.6;
+    }
+
+    @media (max-width: 768px) {
+      .support-container { padding: 100px 20px 60px; }
+      .support-header h1 { font-size: 1.8rem; }
+      h2 { font-size: 1.05rem; margin: 30px 0 10px; }
+      .contact-box { padding: 20px; }
+    }
+
+    @media (max-width: 600px) {
+      .footer-inner { flex-direction: column; align-items: flex-start; }
+      .footer-links { flex-wrap: wrap; gap: 16px; }
+      .nav-inner { padding: 0 16px; }
+      .support-container { padding: 90px 16px 50px; }
+      .support-header h1 { font-size: 1.5rem; }
+      p, li { font-size: 0.88rem; }
+      .contact-btn { padding: 10px 22px; font-size: 0.88rem; }
+    }
+
+    @media (max-width: 400px) {
+      .support-header h1 { font-size: 1.3rem; }
+      .contact-box { padding: 16px; border-radius: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <img src="assets/logo.png" alt="PilotReady Logo" />
+        <span class="nav-logo-text">Pilot<span>Ready</span></span>
+      </a>
+      <a href="index.html" class="nav-back">← Back to Home</a>
+    </div>
+  </nav>
+
+  <div class="support-container">
+
+    <div class="support-header">
+      <h1>Support</h1>
+      <p class="subtitle">We're here to help</p>
+      <span class="support-badge">PilotReady App</span>
+    </div>
+
+    <p>Find answers to common questions below. If you need further assistance, don't hesitate to contact us directly.</p>
+
+    <h2>Subscription & Access</h2>
+    <ul>
+      <li>
+        <strong>How do I activate my subscription?</strong>
+        After subscribing via the App Store, open the app and tap the airline card. Your access will be activated automatically.
+      </li>
+      <li>
+        <strong>My subscription is active but content won't download.</strong>
+        Try signing out and back in, then restart the app. If the issue persists, contact us.
+      </li>
+      <li>
+        <strong>How do I cancel my subscription?</strong>
+        Go to iPhone Settings → Apple ID → Subscriptions → PilotReady, then tap Cancel Subscription.
+      </li>
+      <li>
+        <strong>I was charged but lost access.</strong>
+        Please contact us with your Apple ID email and we'll look into it immediately.
+      </li>
+    </ul>
+
+    <h2>Content & Downloads</h2>
+    <ul>
+      <li>
+        <strong>How do I download the content pack?</strong>
+        After subscribing, tap the airline card on the Airlines screen. The download will start automatically.
+      </li>
+      <li>
+        <strong>Can I use the app offline?</strong>
+        Yes. Once the content pack is downloaded, all study materials are available offline.
+      </li>
+      <li>
+        <strong>The download is stuck or failed.</strong>
+        Check your internet connection and try again. If the problem continues, delete the app and reinstall it.
+      </li>
+    </ul>
+
+    <h2>Account</h2>
+    <ul>
+      <li>
+        <strong>I forgot my password.</strong>
+        On the login screen, tap "Forgot Password" and enter your email. You'll receive a reset link.
+      </li>
+      <li>
+        <strong>How do I delete my account?</strong>
+        Go to the app's Settings screen and tap "Delete Account". This permanently removes all your data.
+      </li>
+    </ul>
+
+    <h2>AI Features</h2>
+    <ul>
+      <li>
+        <strong>What are AI Credits?</strong>
+        AI Credits are used for AI-powered interview analysis. You receive a free allowance with your subscription. Additional credits can be purchased from the app.
+      </li>
+      <li>
+        <strong>The AI analysis is not working.</strong>
+        Make sure microphone permission is granted in iPhone Settings → Privacy → Microphone → PilotReady. Also check that you have sufficient AI Credits.
+      </li>
+    </ul>
+
+    <h2>Contact Us</h2>
+    <div class="contact-box">
+      <p>Can't find what you're looking for? Send us an email and we'll get back to you as soon as possible.<br /><br />
+      <strong>Email:</strong> <a href="mailto:damianomiazzi@gmail.com">damianomiazzi@gmail.com</a><br />
+      <strong>App:</strong> PilotReady (iOS)
+      </p>
+      <a class="contact-btn" href="mailto:damianomiazzi@gmail.com">Email Support</a>
+    </div>
+
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-logo">
+        <img src="assets/logo.png" alt="Logo" />
+        Pilot<span>Ready</span>
+      </div>
+      <div class="footer-links">
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="support.html">Support</a>
+        <a href="mailto:damianomiazzi@gmail.com">Contact</a>
+      </div>
+      <p class="footer-copy">© 2026 PilotReady. All rights reserved.</p>
+    </div>
+  </footer>
+
+</body>
+</html>
