@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PilotReady — Admin</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #0B1D3A;
+      --navy-mid: #132648;
+      --navy-light: #1B3A6B;
+      --teal: #00C8D7;
+      --gold: #D4A837;
+      --white: #FFFFFF;
+      --off-white: #E8F0FE;
+      --gray: #8A9BBF;
+      --card-bg: rgba(255,255,255,0.05);
+      --border: rgba(255,255,255,0.08);
+      --font: 'Inter', system-ui, -apple-system, sans-serif;
+      --green: #22c55e;
+      --red: #ef4444;
+      --yellow: #eab308;
+    }
+    body {
+      font-family: var(--font);
+      background: var(--navy);
+      color: var(--white);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* Login Screen */
+    #login-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .login-box {
+      background: var(--navy-mid);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 48px;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .login-box h1 {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+    .login-box p {
+      color: var(--gray);
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+    .login-box input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--navy);
+      color: var(--white);
+      font-family: var(--font);
+      font-size: 14px;
+      margin-bottom: 12px;
+      outline: none;
+    }
+    .login-box input:focus {
+      border-color: var(--teal);
+    }
+    .login-box button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: var(--teal);
+      color: var(--navy);
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .login-box button:hover {
+      opacity: 0.9;
+    }
+    .login-error {
+      color: var(--red);
+      font-size: 13px;
+      margin-top: 12px;
+      display: none;
+    }
+
+    /* Dashboard */
+    #dashboard {
+      display: none;
+      padding: 32px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .dash-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+    }
+    .dash-header h1 {
+      font-size: 28px;
+    }
+    .dash-header button {
+      padding: 8px 20px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--gray);
+      font-family: var(--font);
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .dash-header button:hover {
+      border-color: var(--teal);
+      color: var(--white);
+    }
+
+    /* Stats Cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .stat-card {
+      background: var(--navy-mid);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+    }
+    .stat-card .label {
+      color: var(--gray);
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+    .stat-card .value {
+      font-size: 32px;
+      font-weight: 700;
+    }
+    .stat-card .sub {
+      color: var(--gray);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab {
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--gray);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .tab:hover { color: var(--white); }
+    .tab.active {
+      color: var(--teal);
+      border-bottom-color: var(--teal);
+    }
+
+    /* Tab Content */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Table */
+    .table-wrap {
+      background: var(--navy-mid);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th {
+      text-align: left;
+      padding: 14px 16px;
+      color: var(--gray);
+      font-weight: 500;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover { background: rgba(255,255,255,0.02); }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-active { background: rgba(34,197,94,0.15); color: var(--green); }
+    .badge-expired { background: rgba(239,68,68,0.15); color: var(--red); }
+    .badge-trial { background: rgba(234,179,8,0.15); color: var(--yellow); }
+    .badge-none { background: rgba(138,155,191,0.1); color: var(--gray); }
+
+    /* Search */
+    .search-bar {
+      margin-bottom: 16px;
+    }
+    .search-bar input {
+      width: 100%;
+      max-width: 400px;
+      padding: 10px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--navy);
+      color: var(--white);
+      font-family: var(--font);
+      font-size: 13px;
+      outline: none;
+    }
+    .search-bar input:focus { border-color: var(--teal); }
+
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 60px;
+      color: var(--gray);
+    }
+    .spinner {
+      display: inline-block;
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--teal);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 768px) {
+      #dashboard { padding: 16px; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .stat-card .value { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div id="login-screen">
+  <div class="login-box">
+    <h1>PilotReady Admin</h1>
+    <p>Sign in to access the dashboard</p>
+    <input type="email" id="login-email" placeholder="Email" autocomplete="email" />
+    <input type="password" id="login-password" placeholder="Password" autocomplete="current-password" />
+    <button onclick="handleLogin()">Sign In</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboard">
+  <div class="dash-header">
+    <h1>PilotReady Dashboard</h1>
+    <button onclick="handleLogout()">Sign Out</button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="label">Total Users</div>
+      <div class="value" id="stat-users">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Active Subscriptions</div>
+      <div class="value" id="stat-active">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Expired</div>
+      <div class="value" id="stat-expired">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Airline Requests</div>
+      <div class="value" id="stat-requests">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Feedback</div>
+      <div class="value" id="stat-feedback">-</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('users')">Users</div>
+    <div class="tab" onclick="switchTab('requests')">Airline Requests</div>
+    <div class="tab" onclick="switchTab('feedback')">Feedback</div>
+  </div>
+
+  <!-- Users Tab -->
+  <div class="tab-content active" id="tab-users">
+    <div class="search-bar">
+      <input type="text" id="user-search" placeholder="Search by email..." oninput="filterUsers()" />
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Email</th>
+            <th>Registered</th>
+            <th>Airline</th>
+            <th>Plan</th>
+            <th>Status</th>
+            <th>Expires</th>
+            <th>Trial Used</th>
+          </tr>
+        </thead>
+        <tbody id="users-table">
+          <tr><td colspan="8" class="loading"><div class="spinner"></div><br>Loading users...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Airline Requests Tab -->
+  <div class="tab-content" id="tab-requests">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Email</th>
+            <th>Airline Requested</th>
+            <th>Notes</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="requests-table">
+          <tr><td colspan="5" class="loading"><div class="spinner"></div><br>Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Feedback Tab -->
+  <div class="tab-content" id="tab-feedback">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Email</th>
+            <th>Message</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="feedback-table">
+          <tr><td colspan="4" class="loading"><div class="spinner"></div><br>Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+  import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCqBRmugyTiAzndEyA_hG3Q3F5I1Fvr0WE",
+    authDomain: "interview-pilot-pro.firebaseapp.com",
+    projectId: "interview-pilot-pro",
+    storageBucket: "interview-pilot-pro.firebasestorage.app",
+    messagingSenderId: "231060889731",
+    appId: "1:231060889731:web:1be3d01e9f883efed5fbb6",
+    measurementId: "G-S8Y72BTL46"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let allUsersData = [];
+
+  // Expose functions to global scope
+  const ADMIN_EMAIL = 'damianomiazzi@gmail.com';
+
+  window.handleLogin = async function() {
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    const errorEl = document.getElementById('login-error');
+    errorEl.style.display = 'none';
+
+    if (email.toLowerCase() !== ADMIN_EMAIL) {
+      errorEl.textContent = 'Access denied';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (e) {
+      errorEl.textContent = 'Invalid email or password';
+      errorEl.style.display = 'block';
+    }
+  };
+
+  window.handleLogout = async function() {
+    await signOut(auth);
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+  };
+
+  window.switchTab = function(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('tab-' + tab).classList.add('active');
+  };
+
+  window.filterUsers = function() {
+    const q = document.getElementById('user-search').value.toLowerCase();
+    const filtered = allUsersData.filter(u => u.email.toLowerCase().includes(q));
+    renderUsersTable(filtered);
+  };
+
+  // Auth state
+  onAuthStateChanged(auth, async (user) => {
+    if (user && user.email.toLowerCase() === ADMIN_EMAIL) {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      loadDashboard();
+    } else if (user) {
+      await signOut(auth);
+      const errorEl = document.getElementById('login-error');
+      errorEl.textContent = 'Access denied';
+      errorEl.style.display = 'block';
+    }
+  });
+
+  // Enter key login
+  document.getElementById('login-password').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') window.handleLogin();
+  });
+
+  function formatDate(timestamp) {
+    if (!timestamp) return '-';
+    const d = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  function getStatusBadge(status) {
+    if (!status) return '<span class="badge badge-none">None</span>';
+    if (status === 'active') return '<span class="badge badge-active">Active</span>';
+    if (status === 'expired') return '<span class="badge badge-expired">Expired</span>';
+    if (status === 'trial') return '<span class="badge badge-trial">Trial</span>';
+    return '<span class="badge badge-none">' + status + '</span>';
+  }
+
+  function renderUsersTable(users) {
+    const tbody = document.getElementById('users-table');
+    if (users.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--gray);">No users found</td></tr>';
+      return;
+    }
+    tbody.innerHTML = users.map((u, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${u.email}</td>
+        <td>${u.createdAt}</td>
+        <td>${u.airline || '-'}</td>
+        <td style="font-size:11px;">${u.plan || '-'}</td>
+        <td>${getStatusBadge(u.status)}</td>
+        <td>${u.expires || '-'}</td>
+        <td>${u.trialUsed !== undefined ? (u.trialUsed ? 'Yes' : 'No') : '-'}</td>
+      </tr>
+    `).join('');
+  }
+
+  async function loadDashboard() {
+    try {
+      // Load users
+      const usersSnap = await getDocs(collection(db, 'users'));
+      const users = [];
+      let activeCount = 0;
+      let expiredCount = 0;
+
+      for (const userDoc of usersSnap.docs) {
+        const data = userDoc.data();
+        const userRow = {
+          email: data.email || 'N/A',
+          createdAt: formatDate(data.createdAt),
+          airline: null,
+          plan: null,
+          status: null,
+          expires: null,
+          trialUsed: undefined
+        };
+
+        // Get airline subscriptions subcollection
+        const subsSnap = await getDocs(collection(db, 'users', userDoc.id, 'airlineSubscriptions'));
+        if (!subsSnap.empty) {
+          const subs = [];
+          subsSnap.forEach(subDoc => {
+            const subData = subDoc.data();
+            subs.push({
+              airline: subDoc.id.toUpperCase(),
+              plan: subData.subscriptionPlan || null,
+              status: subData.subscriptionStatus || null,
+              expires: formatDate(subData.subscriptionExpiryDate),
+              trialUsed: subData.trialUsed
+            });
+            if (subData.subscriptionStatus === 'active') activeCount++;
+            if (subData.subscriptionStatus === 'expired') expiredCount++;
+          });
+          // Show first sub (or combine)
+          if (subs.length > 0) {
+            userRow.airline = subs.map(s => s.airline).join(', ');
+            userRow.plan = subs.map(s => s.plan).filter(Boolean).join(', ');
+            userRow.status = subs[0].status;
+            userRow.expires = subs[0].expires;
+            userRow.trialUsed = subs[0].trialUsed;
+          }
+        }
+        users.push(userRow);
+      }
+
+      // Sort by registration date (newest first)
+      allUsersData = users;
+      renderUsersTable(users);
+      document.getElementById('stat-users').textContent = users.length;
+      document.getElementById('stat-active').textContent = activeCount;
+      document.getElementById('stat-expired').textContent = expiredCount;
+
+      // Load airline requests
+      const reqSnap = await getDocs(collection(db, 'airlineRequests'));
+      const requests = [];
+      reqSnap.forEach(doc => {
+        requests.push(doc.data());
+      });
+      document.getElementById('stat-requests').textContent = requests.length;
+      const reqTbody = document.getElementById('requests-table');
+      if (requests.length === 0) {
+        reqTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--gray);">No requests</td></tr>';
+      } else {
+        reqTbody.innerHTML = requests.map((r, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${r.email || '-'}</td>
+            <td>${r.airlineName || '-'}</td>
+            <td style="white-space:normal;max-width:300px;">${r.notes || '-'}</td>
+            <td>${formatDate(r.createdAt)}</td>
+          </tr>
+        `).join('');
+      }
+
+      // Load feedback
+      const fbSnap = await getDocs(collection(db, 'feedback'));
+      const feedbacks = [];
+      fbSnap.forEach(doc => {
+        feedbacks.push(doc.data());
+      });
+      document.getElementById('stat-feedback').textContent = feedbacks.length;
+      const fbTbody = document.getElementById('feedback-table');
+      if (feedbacks.length === 0) {
+        fbTbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--gray);">No feedback</td></tr>';
+      } else {
+        fbTbody.innerHTML = feedbacks.map((f, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${f.email || '-'}</td>
+            <td style="white-space:normal;max-width:400px;">${f.message || f.text || f.notes || '-'}</td>
+            <td>${formatDate(f.createdAt)}</td>
+          </tr>
+        `).join('');
+      }
+
+    } catch (err) {
+      console.error('Error loading dashboard:', err);
+      document.getElementById('users-table').innerHTML =
+        '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--red);">Error loading data: ' + err.message + '</td></tr>';
+    }
+  }
+</script>
+
+</body>
+</html>
