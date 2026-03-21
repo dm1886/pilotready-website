@@ -556,7 +556,13 @@
       let activeCount = 0;
       let expiredCount = 0;
 
-      for (const userDoc of usersSnap.docs) {
+      // Fetch all subscriptions in parallel
+      const subsPromises = usersSnap.docs.map(userDoc =>
+        getDocs(collection(db, 'users', userDoc.id, 'airlineSubscriptions'))
+      );
+      const allSubs = await Promise.all(subsPromises);
+
+      usersSnap.docs.forEach((userDoc, index) => {
         const data = userDoc.data();
         const rawTs = data.createdAt ? (data.createdAt.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime()) : 0;
         const userRow = {
@@ -570,8 +576,7 @@
           trialUsed: undefined
         };
 
-        // Get airline subscriptions subcollection
-        const subsSnap = await getDocs(collection(db, 'users', userDoc.id, 'airlineSubscriptions'));
+        const subsSnap = allSubs[index];
         if (!subsSnap.empty) {
           const subs = [];
           subsSnap.forEach(subDoc => {
@@ -596,7 +601,7 @@
           }
         }
         users.push(userRow);
-      }
+      });
 
       // Sort by registration date (newest first)
       users.sort((a, b) => (b.rawCreatedAt || 0) - (a.rawCreatedAt || 0));
