@@ -222,13 +222,15 @@
     .badge-trial { background: rgba(234,179,8,0.15); color: var(--yellow); }
     .badge-none { background: rgba(138,155,191,0.1); color: var(--gray); }
 
-    /* Search */
-    .search-bar {
+    /* Filters */
+    .filters-bar {
+      display: flex;
+      gap: 12px;
       margin-bottom: 16px;
+      flex-wrap: wrap;
     }
-    .search-bar input {
-      width: 100%;
-      max-width: 400px;
+    .filters-bar input,
+    .filters-bar select {
       padding: 10px 16px;
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -238,7 +240,20 @@
       font-size: 13px;
       outline: none;
     }
-    .search-bar input:focus { border-color: var(--teal); }
+    .filters-bar input {
+      flex: 1;
+      min-width: 200px;
+    }
+    .filters-bar select {
+      min-width: 150px;
+      cursor: pointer;
+    }
+    .filters-bar input:focus,
+    .filters-bar select:focus { border-color: var(--teal); }
+    .filters-bar select option {
+      background: var(--navy-mid);
+      color: var(--white);
+    }
 
     /* Loading */
     .loading {
@@ -319,8 +334,22 @@
 
   <!-- Users Tab -->
   <div class="tab-content active" id="tab-users">
-    <div class="search-bar">
+    <div class="filters-bar">
       <input type="text" id="user-search" placeholder="Search by email..." oninput="filterUsers()" />
+      <select id="filter-status" onchange="filterUsers()">
+        <option value="all">All Status</option>
+        <option value="active">Active</option>
+        <option value="expired">Expired</option>
+        <option value="trial">Trial</option>
+        <option value="none">No Subscription</option>
+      </select>
+      <select id="filter-airline" onchange="filterUsers()">
+        <option value="all">All Airlines</option>
+      </select>
+      <select id="sort-order" onchange="filterUsers()">
+        <option value="newest">Newest First</option>
+        <option value="oldest">Oldest First</option>
+      </select>
     </div>
     <div class="table-wrap">
       <table>
@@ -443,7 +472,26 @@
 
   window.filterUsers = function() {
     const q = document.getElementById('user-search').value.toLowerCase();
-    const filtered = allUsersData.filter(u => u.email.toLowerCase().includes(q));
+    const statusFilter = document.getElementById('filter-status').value;
+    const airlineFilter = document.getElementById('filter-airline').value;
+    const sortOrder = document.getElementById('sort-order').value;
+
+    let filtered = allUsersData.filter(u => {
+      if (q && !u.email.toLowerCase().includes(q)) return false;
+      if (statusFilter !== 'all') {
+        if (statusFilter === 'none' && u.status) return false;
+        if (statusFilter !== 'none' && u.status !== statusFilter) return false;
+      }
+      if (airlineFilter !== 'all' && (!u.airline || !u.airline.toUpperCase().includes(airlineFilter.toUpperCase()))) return false;
+      return true;
+    });
+
+    filtered.sort((a, b) => {
+      const da = a.rawCreatedAt || 0;
+      const db2 = b.rawCreatedAt || 0;
+      return sortOrder === 'newest' ? db2 - da : da - db2;
+    });
+
     renderUsersTable(filtered);
   };
 
@@ -510,9 +558,11 @@
 
       for (const userDoc of usersSnap.docs) {
         const data = userDoc.data();
+        const rawTs = data.createdAt ? (data.createdAt.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime()) : 0;
         const userRow = {
           email: data.email || 'N/A',
           createdAt: formatDate(data.createdAt),
+          rawCreatedAt: rawTs,
           airline: null,
           plan: null,
           status: null,
@@ -549,7 +599,19 @@
       }
 
       // Sort by registration date (newest first)
+      users.sort((a, b) => (b.rawCreatedAt || 0) - (a.rawCreatedAt || 0));
       allUsersData = users;
+
+      // Populate airline filter
+      const airlines = [...new Set(users.map(u => u.airline).filter(Boolean).flatMap(a => a.split(', ')))];
+      const airlineSelect = document.getElementById('filter-airline');
+      airlines.forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a;
+        opt.textContent = a;
+        airlineSelect.appendChild(opt);
+      });
+
       renderUsersTable(users);
       document.getElementById('stat-users').textContent = users.length;
       document.getElementById('stat-active').textContent = activeCount;
