@@ -362,11 +362,13 @@
             <th>Plan</th>
             <th>Status</th>
             <th>Expires</th>
+            <th>Renewal</th>
             <th>Trial Used</th>
+            <th>Last Active</th>
           </tr>
         </thead>
         <tbody id="users-table">
-          <tr><td colspan="8" class="loading"><div class="spinner"></div><br>Loading users...</td></tr>
+          <tr><td colspan="10" class="loading"><div class="spinner"></div><br>Loading users...</td></tr>
         </tbody>
       </table>
     </div>
@@ -435,7 +437,8 @@
   let allUsersData = [];
 
   // Expose functions to global scope
-  const ADMIN_EMAIL = 'damianomiazzi@gmail.com';
+  const ADMIN_EMAILS = ['damianomiazzi@gmail.com', 'admin@admin.com'];
+  const isAdmin = (email) => !!email && ADMIN_EMAILS.includes(email.toLowerCase());
 
   window.handleLogin = async function() {
     const email = document.getElementById('login-email').value;
@@ -443,7 +446,7 @@
     const errorEl = document.getElementById('login-error');
     errorEl.style.display = 'none';
 
-    if (email.toLowerCase() !== ADMIN_EMAIL) {
+    if (!isAdmin(email)) {
       errorEl.textContent = 'Access denied';
       errorEl.style.display = 'block';
       return;
@@ -497,7 +500,7 @@
 
   // Auth state
   onAuthStateChanged(auth, async (user) => {
-    if (user && user.email.toLowerCase() === ADMIN_EMAIL) {
+    if (user && isAdmin(user.email)) {
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
       loadDashboard();
@@ -528,10 +531,23 @@
     return '<span class="badge badge-none">' + status + '</span>';
   }
 
+  // Renewal state: only meaningful while the subscription is still active/trial.
+  // willAutoRenew === undefined means the user is still on an old app build that
+  // never wrote the field yet (so we can't know) — shown as "Unknown".
+  function getRenewalBadge(willAutoRenew, cancelledAt, status) {
+    if (status !== 'active' && status !== 'trial') return '-';
+    if (willAutoRenew === true)  return '<span class="badge badge-active">Auto-renew</span>';
+    if (willAutoRenew === false) {
+      const when = (cancelledAt && cancelledAt !== '-') ? ' · ' + cancelledAt : '';
+      return '<span class="badge badge-expired">Cancelled' + when + '</span>';
+    }
+    return '<span class="badge badge-none">Unknown</span>';
+  }
+
   function renderUsersTable(users) {
     const tbody = document.getElementById('users-table');
     if (users.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--gray);">No users found</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--gray);">No users found</td></tr>';
       return;
     }
     tbody.innerHTML = users.map((u, i) => `
@@ -543,7 +559,9 @@
         <td style="font-size:11px;">${u.plan || '-'}</td>
         <td>${getStatusBadge(u.status)}</td>
         <td>${u.expires || '-'}</td>
+        <td>${getRenewalBadge(u.willAutoRenew, u.cancelledAt, u.status)}</td>
         <td>${u.trialUsed !== undefined ? (u.trialUsed ? 'Yes' : 'No') : '-'}</td>
+        <td>${u.lastActive && u.lastActive !== '-' ? u.lastActive + (u.lastAppVersion ? '<br><span style="font-size:10px;color:var(--gray);">v' + u.lastAppVersion + '</span>' : '') : '-'}</td>
       </tr>
     `).join('');
   }
@@ -569,11 +587,15 @@
           email: data.email || 'N/A',
           createdAt: formatDate(data.createdAt),
           rawCreatedAt: rawTs,
+          lastActive: formatDate(data.lastActiveAt),
+          lastAppVersion: data.lastAppVersion || null,
           airline: null,
           plan: null,
           status: null,
           expires: null,
-          trialUsed: undefined
+          trialUsed: undefined,
+          willAutoRenew: undefined,
+          cancelledAt: null
         };
 
         const subsSnap = allSubs[index];
@@ -586,7 +608,9 @@
               plan: subData.subscriptionPlan || null,
               status: subData.subscriptionStatus || null,
               expires: formatDate(subData.subscriptionExpiryDate),
-              trialUsed: subData.trialUsed
+              trialUsed: subData.trialUsed,
+              willAutoRenew: subData.willAutoRenew,
+              cancelledAt: formatDate(subData.cancelledAt)
             });
             if (subData.subscriptionStatus === 'active') activeCount++;
             if (subData.subscriptionStatus === 'expired') expiredCount++;
@@ -598,6 +622,8 @@
             userRow.status = subs[0].status;
             userRow.expires = subs[0].expires;
             userRow.trialUsed = subs[0].trialUsed;
+            userRow.willAutoRenew = subs[0].willAutoRenew;
+            userRow.cancelledAt = subs[0].cancelledAt;
           }
         }
         users.push(userRow);
@@ -668,7 +694,7 @@
     } catch (err) {
       console.error('Error loading dashboard:', err);
       document.getElementById('users-table').innerHTML =
-        '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--red);">Error loading data: ' + err.message + '</td></tr>';
+        '<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--red);">Error loading data: ' + err.message + '</td></tr>';
     }
   }
 </script>
