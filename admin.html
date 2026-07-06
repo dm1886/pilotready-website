@@ -323,6 +323,10 @@
       <div class="label">Feedback</div>
       <div class="value" id="stat-feedback">-</div>
     </div>
+    <div class="stat-card">
+      <div class="label">Question Feedback</div>
+      <div class="value" id="stat-qfeedback">-</div>
+    </div>
   </div>
 
   <!-- Tabs -->
@@ -330,6 +334,7 @@
     <div class="tab active" onclick="switchTab('users')">Users</div>
     <div class="tab" onclick="switchTab('requests')">Airline Requests</div>
     <div class="tab" onclick="switchTab('feedback')">Feedback</div>
+    <div class="tab" onclick="switchTab('qfeedback')">Question Feedback</div>
   </div>
 
   <!-- Users Tab -->
@@ -412,6 +417,40 @@
       </table>
     </div>
   </div>
+
+  <!-- Question Feedback Tab (EY / ATPL: "seen at test" + issue reports → collection questionFeedback) -->
+  <div class="tab-content" id="tab-qfeedback">
+    <div class="filters-bar">
+      <input type="text" id="qf-search" placeholder="Search question, note, email..." oninput="filterQFeedback()" />
+      <select id="qf-filter-type" onchange="filterQFeedback()">
+        <option value="all">All Types</option>
+        <option value="seen_in_interview">Seen at test</option>
+        <option value="error">Issue reported</option>
+      </select>
+      <select id="qf-filter-airline" onchange="filterQFeedback()">
+        <option value="all">All Airlines</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Type</th>
+            <th>Airline</th>
+            <th>Test</th>
+            <th>Question</th>
+            <th>Note</th>
+            <th>Email</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="qfeedback-table">
+          <tr><td colspan="8" class="loading"><div class="spinner"></div><br>Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <!-- Firebase SDK -->
@@ -435,6 +474,7 @@
   const db = getFirestore(app);
 
   let allUsersData = [];
+  let allQFeedbackData = [];
 
   // Expose functions to global scope
   const ADMIN_EMAILS = ['damianomiazzi@gmail.com', 'admin@admin.com'];
@@ -544,26 +584,97 @@
     return '<span class="badge badge-none">Unknown</span>';
   }
 
+  function escapeHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function getQFTypeBadge(type) {
+    if (type === 'seen_in_interview') return '<span class="badge badge-active">Seen at test</span>';
+    if (type === 'error') return '<span class="badge badge-expired">Issue</span>';
+    return '<span class="badge badge-none">' + escapeHtml(type || '-') + '</span>';
+  }
+
+  window.filterQFeedback = function() {
+    const q = document.getElementById('qf-search').value.toLowerCase();
+    const typeFilter = document.getElementById('qf-filter-type').value;
+    const airlineFilter = document.getElementById('qf-filter-airline').value;
+    const filtered = allQFeedbackData.filter(f => {
+      if (typeFilter !== 'all' && f.type !== typeFilter) return false;
+      if (airlineFilter !== 'all' && (f.airline || '').toUpperCase() !== airlineFilter.toUpperCase()) return false;
+      if (q) {
+        const hay = ((f.questionText || '') + ' ' + (f.note || '') + ' ' + (f.email || '') + ' ' + (f.questionUid || '')).toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+    renderQFeedbackTable(filtered);
+  };
+
+  function renderQFeedbackTable(items) {
+    const tbody = document.getElementById('qfeedback-table');
+    if (!items.length) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--gray);">No question feedback</td></tr>';
+      return;
+    }
+    tbody.innerHTML = items.map((f, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${getQFTypeBadge(f.type)}</td>
+        <td><strong>${escapeHtml((f.airline || '-').toUpperCase())}</strong></td>
+        <td>${escapeHtml(f.testType || '-')}</td>
+        <td style="white-space:normal;max-width:360px;">${escapeHtml(f.questionText || '-')}</td>
+        <td style="white-space:normal;max-width:260px;">${f.note ? escapeHtml(f.note) : '-'}</td>
+        <td>${escapeHtml(f.email || '-')}</td>
+        <td>${f.date}</td>
+      </tr>
+    `).join('');
+  }
+
   function renderUsersTable(users) {
     const tbody = document.getElementById('users-table');
     if (users.length === 0) {
       tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--gray);">No users found</td></tr>';
       return;
     }
-    tbody.innerHTML = users.map((u, i) => `
+    const line = 'padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05);';
+    tbody.innerHTML = users.map((u, i) => {
+      const subs = (u.subs && u.subs.length) ? u.subs : null;
+      // Each airline renders on its own aligned line across the subscription columns.
+      const airlineCell = subs
+        ? subs.map(s => `<div style="${line}"><strong>${s.airline}</strong></div>`).join('')
+        : '-';
+      const planCell = subs
+        ? subs.map(s => `<div style="${line}">${s.plan || '-'}</div>`).join('')
+        : '-';
+      const statusCell = subs
+        ? subs.map(s => `<div style="${line}">${getStatusBadge(s.status)}</div>`).join('')
+        : getStatusBadge(null);
+      const expiresCell = subs
+        ? subs.map(s => `<div style="${line}">${s.expires || '-'}</div>`).join('')
+        : '-';
+      const renewalCell = subs
+        ? subs.map(s => `<div style="${line}">${getRenewalBadge(s.willAutoRenew, s.cancelledAt, s.status)}</div>`).join('')
+        : '-';
+      const trialCell = subs
+        ? subs.map(s => `<div style="${line}">${s.trialUsed !== undefined ? (s.trialUsed ? 'Yes' : 'No') : '-'}</div>`).join('')
+        : '-';
+      return `
       <tr>
         <td>${i + 1}</td>
         <td>${u.email}</td>
         <td>${u.createdAt}</td>
-        <td>${u.airline || '-'}</td>
-        <td style="font-size:11px;">${u.plan || '-'}</td>
-        <td>${getStatusBadge(u.status)}</td>
-        <td>${u.expires || '-'}</td>
-        <td>${getRenewalBadge(u.willAutoRenew, u.cancelledAt, u.status)}</td>
-        <td>${u.trialUsed !== undefined ? (u.trialUsed ? 'Yes' : 'No') : '-'}</td>
+        <td>${airlineCell}</td>
+        <td style="font-size:11px;">${planCell}</td>
+        <td>${statusCell}</td>
+        <td>${expiresCell}</td>
+        <td>${renewalCell}</td>
+        <td>${trialCell}</td>
         <td>${u.lastActive && u.lastActive !== '-' ? u.lastActive + (u.lastAppVersion ? '<br><span style="font-size:10px;color:var(--gray);">v' + u.lastAppVersion + '</span>' : '') : '-'}</td>
       </tr>
-    `).join('');
+    `;
+    }).join('');
   }
 
   async function loadDashboard() {
@@ -590,6 +701,7 @@
           lastActive: formatDate(data.lastActiveAt),
           lastAppVersion: data.lastAppVersion || null,
           airline: null,
+          subs: [],
           plan: null,
           status: null,
           expires: null,
@@ -615,15 +727,16 @@
             if (subData.subscriptionStatus === 'active') activeCount++;
             if (subData.subscriptionStatus === 'expired') expiredCount++;
           });
-          // Show first sub (or combine)
+          // Keep ALL subscriptions so the table shows every airline per user.
           if (subs.length > 0) {
-            userRow.airline = subs.map(s => s.airline).join(', ');
-            userRow.plan = subs.map(s => s.plan).filter(Boolean).join(', ');
-            userRow.status = subs[0].status;
-            userRow.expires = subs[0].expires;
-            userRow.trialUsed = subs[0].trialUsed;
-            userRow.willAutoRenew = subs[0].willAutoRenew;
-            userRow.cancelledAt = subs[0].cancelledAt;
+            userRow.subs = subs;
+            userRow.airline = subs.map(s => s.airline).join(', '); // used by the airline filter
+            // Representative status for the status filter: active if ANY sub is active, then trial, then expired.
+            userRow.status = subs.some(s => s.status === 'active') ? 'active'
+                           : subs.some(s => s.status === 'trial')  ? 'trial'
+                           : subs.some(s => s.status === 'expired') ? 'expired'
+                           : subs[0].status;
+            userRow.trialUsed = subs.some(s => s.trialUsed === true);
           }
         }
         users.push(userRow);
@@ -690,6 +803,36 @@
           </tr>
         `).join('');
       }
+
+      // Load question feedback (EY / ATPL: "seen at test" + issue reports) → collection questionFeedback
+      const qfSnap = await getDocs(collection(db, 'questionFeedback'));
+      const qfeedbacks = [];
+      qfSnap.forEach(doc => {
+        const d = doc.data();
+        qfeedbacks.push({
+          type: d.type || '',
+          airline: (d.airlineId || '').toUpperCase(),
+          testType: d.testType || '',
+          questionUid: d.questionUid || '',
+          questionText: d.questionText || '',
+          note: d.note || '',
+          email: d.email || '',
+          rawTs: (d.updatedAt && d.updatedAt.toDate) ? d.updatedAt.toDate().getTime() : 0,
+          date: formatDate(d.updatedAt)
+        });
+      });
+      qfeedbacks.sort((a, b) => (b.rawTs || 0) - (a.rawTs || 0));
+      allQFeedbackData = qfeedbacks;
+      document.getElementById('stat-qfeedback').textContent = qfeedbacks.length;
+      // Populate airline filter (so you can see which database/airline a report came from)
+      const qfAirlines = [...new Set(qfeedbacks.map(f => f.airline).filter(Boolean))];
+      const qfAirlineSelect = document.getElementById('qf-filter-airline');
+      qfAirlines.forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a; opt.textContent = a;
+        qfAirlineSelect.appendChild(opt);
+      });
+      renderQFeedbackTable(qfeedbacks);
 
     } catch (err) {
       console.error('Error loading dashboard:', err);
